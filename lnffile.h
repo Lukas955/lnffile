@@ -109,8 +109,10 @@ enum LNF_FILE_BLOCK {
 	LNF_FILE_BLOCK_TMPLT =      0x02,
 	/** Flow data blocks (see "Flow" block)                                  */
 	LNF_FILE_BLOCK_FLOW =       0x03,
-	/** Extension table (see "Extension table" block)            */
-	LNF_FILE_BLOCK_EXT_TABLE =  0x04
+	/** Extension table (see "Extension table" block)                        */
+	LNF_FILE_BLOCK_EXT_TABLE =  0x04,
+	/** Exporter statistics (see "Statistics" block)                         */
+	LNF_FILE_BLOCK_STAT =       0x05
 };
 
 /**
@@ -145,6 +147,8 @@ struct lnf_file_block_header {
 
 // ----------------------------------------------------------------------------
 
+#define LNF_FILE_EXPORTER_NAME_LEN (64)
+
 /** \brief Exporter information block                                        */
 struct lnf_file_block_exporter {
 	/** Common header (type == LNF_FILE_BLOCK_EXPORTER)                      */
@@ -152,8 +156,7 @@ struct lnf_file_block_exporter {
 
 	/**
 	 * Identification ID of the flow exporter
-	 * Value "0" is reserved data record with unknown exporter and therefore
-	 * the value MUST be always greater than 0.
+	 * Note: Value "0" is reserved data record with unknown exporter(s).
 	 */
 	uint32_t exporter_id;
 	/** Observation Domain ID                                                */
@@ -161,27 +164,7 @@ struct lnf_file_block_exporter {
 	/** IP address                                                           */
 	uint8_t  addr[16];
 	/** Name (e.g. server name / IP address as string / ...)                 */
-	uint8_t  name[64]; // TODO: define
-
-	// Statistics
-	uint64_t num_flows;
-	uint64_t num_bytes;
-	uint64_t num_packets;
-
-	uint64_t num_flow_tcp;
-	uint64_t num_flow_udp;
-	uint64_t num_flow_icmp;
-	uint64_t num_flow_others;
-
-	uint64_t num_bytes_tcp;
-	uint64_t num_bytes_udp;
-	uint64_t num_bytes_icmp;
-	uint64_t num_bytes_others;
-
-	uint64_t num_packets_tcp;
-	uint64_t num_packets_udp;
-	uint64_t num_packets_icmp;
-	uint64_t num_packets_others;
+	uint8_t  name[LNF_FILE_EXPORTER_NAME_LEN];
 
 	// TODO: sampling information
 
@@ -466,7 +449,44 @@ struct lnf_file_block_ext_pos {
 
 	/** Records of positions */
 	struct lnf_file_exp_rec rec[1];
-};
+} __attribute__((packed));;
+
+// ----------------------------------------------------------------------------
+
+/**
+ * \brief Statistic block about a flow exporter
+ *
+ * Represents statistics about flow record captured by the exporter.
+ * For each exporter there MUST be exactly ONE record that corresponds to
+ * Exporter information block.
+ */
+struct lnf_file_block_stat {
+	/** Common header (type == LNF_FILE_BLOCK_STAT)                          */
+	struct lnf_file_block_header header;
+
+	/** Identification ID of an exporter */
+	uint32_t exporter_id;
+
+	// Statistics
+	uint64_t num_flows;
+	uint64_t num_bytes;
+	uint64_t num_packets;
+
+	uint64_t num_flow_tcp;
+	uint64_t num_flow_udp;
+	uint64_t num_flow_icmp;
+	uint64_t num_flow_others;
+
+	uint64_t num_bytes_tcp;
+	uint64_t num_bytes_udp;
+	uint64_t num_bytes_icmp;
+	uint64_t num_bytes_others;
+
+	uint64_t num_packets_tcp;
+	uint64_t num_packets_udp;
+	uint64_t num_packets_icmp;
+	uint64_t num_packets_others;
+} __attribute__((packed));
 
 /**@}*/
 
