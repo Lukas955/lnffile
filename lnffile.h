@@ -78,7 +78,23 @@ enum LNF_FILE_HEADER_FLAGS {
 	LNF_FILE_FLAG_COMPRESSION_LZO = 0x02,
 };
 
-/** \brief File header                                                       */
+/**
+ * \brief File header
+ * \verbatim
+ *     0                   1                   2                   3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |              Magic            |           Version             |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                             Flags                             |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                       Number of blocks                        |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                    Extension table offset                     |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *                          Figure B. File header
+ * \endverbatim
+ */
 struct lnf_file_header {
 	/** Magic number (must be always #LNF_FILE_MAGIC)                        */
 	uint16_t magic;
@@ -133,7 +149,7 @@ enum LNF_FILE_BLOCK {
  *    |                ~ ~ ~ Content of the block ~ ~ ~               |
  *    |                                                               |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                     Figure B. Common block header
+ *                     Figure C. Common block header
  * \endverbatim
  */
 struct lnf_file_block_header {
@@ -149,7 +165,12 @@ struct lnf_file_block_header {
 
 #define LNF_FILE_EXPORTER_NAME_LEN (64)
 
-/** \brief Exporter information block                                        */
+/**
+ * \brief Exporter information block
+ *
+ * Because one file can include flows from multiple exporters it quite useful
+ * to be able to determine/filter flow by source.
+ */
 struct lnf_file_block_exporter {
 	/** Common header (type == LNF_FILE_BLOCK_EXPORTER)                      */
 	struct lnf_file_block_header header;
@@ -163,10 +184,11 @@ struct lnf_file_block_exporter {
 	uint32_t odid;
 	/** IP address                                                           */
 	uint8_t  addr[16];
-	/** Name (e.g. server name / IP address as string / ...)                 */
-	uint8_t  name[LNF_FILE_EXPORTER_NAME_LEN];
 
 	// TODO: sampling information
+
+	/** Name (e.g. server name / IP address as string / ...)                 */
+	uint8_t  description[LNF_FILE_EXPORTER_NAME_LEN];
 
 } __attribute__((packed));
 
@@ -185,7 +207,7 @@ struct lnf_file_block_exporter {
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |               ID              |            Length             |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                    Figure C. Template field specifier
+ *                    Figure D. Template field specifier
  * \endverbatim
  */
 struct lnf_file_tmplt_field {
@@ -230,7 +252,7 @@ struct lnf_file_tmplt_field {
  *    |        ~ ~ ~ One or more Template field specifiers ~ ~ ~      |
  *    |                                                               |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                         Figure D. Template record
+ *                         Figure E. Template record
  *
  * \endverbatim
  */
@@ -265,7 +287,7 @@ struct lnf_file_tmplt_rec {
  *    +---------------------------------------------------------------+
  *    |                       Template Record N                       |
  *    +---------------------------------------------------------------+
- *                  Figure E. Structure of a template block
+ *                  Figure F. Structure of a template block
  * \endverbatim
  */
 struct lnf_file_block_tmplts {
@@ -333,7 +355,7 @@ struct lnf_file_block_tmplts {
  *    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |                               |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *                      Figure F. Example Data record
+ *                      Figure G. Example Data record
  * \endverbatim
  */
 struct lnf_file_flow_rec
@@ -357,14 +379,29 @@ struct lnf_file_flow_rec
  *    +---------------------------------------------------------------+
  *    |       Common Block header (type == LNF_FILE_BLOCK_FLOW)       |
  *    +---------------------------------------------------------------+
- *    |                       Template Record 1                       |
+ *    |                       Data block header                       |
  *    +---------------------------------------------------------------+
- *    |                       Template Record 2                       |
+ *    |                         Flow Record 1                         |
+ *    +---------------------------------------------------------------+
+ *    |                         Flow Record 2                         |
  *    +---------------------------------------------------------------+
  *    |                              ...                              |
  *    +---------------------------------------------------------------+
- *    |                       Template Record N                       |
+ *    |                         Flow Record N                         |
  *    +---------------------------------------------------------------+
+ *                       Figure H. Flow data block
+ * \endverbatim
+ *
+ * Where the header is defined as
+ * \verbatim
+ *
+ *     0                   1                   2                   3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                          Template ID                          |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                          Exporter ID                          |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *
  * \endverbatim
  */
@@ -407,23 +444,25 @@ struct lnf_file_exp_rec {
  * file header (by offset from the beginning of the file).
  * \verbatim
  *
- *            +--------------------+
- *      +-----|       Header       |
- *      |     +====================+
- *      |     |        ...         |
- *      |     +--------------------+
- *      |     |    Exporter Info   |------------+
- *      |     +--------------------+            |
- *      |     |        ...         |            |
- *      |     +--------------------+            |
- *      |     |    Exporter Info   |---------+  |
- *      |     +--------------------+         |  |
- *      |     |        ...         |         |  |
- *      |     +--------------------+         |  |
- *      |     |      Indexes       |------+  |  |
- *      |     +--------------------+      |  |  |
- *      +---> |   Extension table  |------+--+--+
- *            +--------------------+
+ *                        +--------------------+
+ *                  +-----|       Header       |
+ *                  |     +====================+
+ *                  |     |        ...         |
+ *                  |     +--------------------+
+ *                  |     |    Exporter Info   |------------+
+ *                  |     +--------------------+            |
+ *                  |     |        ...         |            |
+ *                  |     +--------------------+            |
+ *                  |     |    Exporter Info   |---------+  |
+ *                  |     +--------------------+         |  |
+ *                  |     |        ...         |         |  |
+ *                  |     +--------------------+         |  |
+ *                  |     |      Indexes       |------+  |  |
+ *                  |     +--------------------+      |  |  |
+ *                  +---> |   Extension table  |------+--+--+
+ *                        +--------------------+
+ *                  Figure I. Extension table position
+ *
  *
  *
  * \endverbatim
@@ -441,6 +480,7 @@ struct lnf_file_exp_rec {
  *    +---------------------------------------------------------------+
  *    |                       Extension Record N                      |
  *    +---------------------------------------------------------------+
+ *                      Figure J. Extension table block
  * \endverbatim
  */
 struct lnf_file_block_ext_pos {
