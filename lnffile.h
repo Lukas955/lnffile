@@ -91,6 +91,7 @@ enum LNF_FILE_HEADER_FLAGS {
  *    |                       Number of blocks                        |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |                    Extension table offset                     |
+ *    |                             (64b)                             |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *                          Figure B. File header
  * \endverbatim
@@ -205,7 +206,7 @@ struct lnf_file_block_exporter {
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |                       Enterprise number                       |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    |               ID              |            Length             |
+ *    |            Field ID           |            Length             |
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *                    Figure D. Template field specifier
  * \endverbatim
@@ -244,10 +245,10 @@ struct lnf_file_tmplt_field {
  *     0                   1                   2                   3
  *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
  *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    |                          Template ID                          |
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- *    |                           Field count                         |
- *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |                           Template ID                         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+      |           Field count         |          ~ reserved ~         |
+      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *    |                                                               |
  *    |        ~ ~ ~ One or more Template field specifiers ~ ~ ~      |
  *    |                                                               |
@@ -260,7 +261,9 @@ struct lnf_file_tmplt_rec {
 	/** Template ID                                                          */
 	uint32_t tmplt_id;
 	/** Number of Template field specifiers in this record                   */
-	uint32_t field_cnt;
+	uint16_t field_cnt;
+	/** Reserved */
+	uint16_t reserved;
 
 	/** One or more specifiers                                               */
 	struct lnf_file_tmplt_field field[1];
