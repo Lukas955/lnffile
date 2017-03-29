@@ -107,11 +107,11 @@ struct lnf_file_header {
 	/** Total number of blocks (all types)                                   */
 	uint32_t num_blocks;
 	/**
-	 * Offset from start of the file to an extension table.
+	 * Offset from start of the file to an block offset table.
 	 * Value 0 is used when the block is not present.
-	 * (See "Extension position" structure for more information)
+	 * (See "Block offset table" structure for more information)
 	 */
-	uint64_t offset_ext;
+	uint64_t table_offset;
 } __attribute__((packed));
 
 /**
@@ -126,8 +126,8 @@ enum LNF_FILE_BLOCK {
 	LNF_FILE_BLOCK_TMPLT =      0x02,
 	/** Flow data blocks (see "Flow" block)                                  */
 	LNF_FILE_BLOCK_FLOW =       0x03,
-	/** Extension table (see "Extension table" block)                        */
-	LNF_FILE_BLOCK_EXT_TABLE =  0x04,
+	/** Block offsets (see "Block offset table" block)                       */
+	LNF_FILE_BLOCK_OFFSET_TBL = 0x04,
 	/** Exporter statistics (see "Statistics" block)                         */
 	LNF_FILE_BLOCK_STAT =       0x05
 };
@@ -426,8 +426,24 @@ struct lnf_file_block_flow {
 
 // ----------------------------------------------------------------------------
 
-/** Extension record */
-struct lnf_file_exp_rec {
+/**
+ * \brief Extension record
+ *
+ * \verbatim
+ *
+ *     0                   1                   2                   3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |            Type               |                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +
+ *    |                          Block Offset                         |
+ *    +                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ * \endverbatim
+ */
+struct lnf_file_offset_rec {
 	/** Block type (One of #LNF_FILE_BLOCK)                                  */
 	uint16_t type;
 	/** Block offset from start of the file                                  */
@@ -435,7 +451,7 @@ struct lnf_file_exp_rec {
 } __attribute__((packed));
 
 /**
- * \brief Extension block
+ * \brief Block offset table
  *
  * This block describes a table of important block positions (statistics,
  * indexes, etc). The table is NOT intended for flow data and template blocks.
@@ -464,7 +480,7 @@ struct lnf_file_exp_rec {
  *                  |     +--------------------+      |  |  |
  *                  +---> |   Extension table  |------+--+--+
  *                        +--------------------+
- *                  Figure I. Extension table position
+ *           Figure I. Position of "Block offset table" in a file
  *
  *
  *
@@ -473,17 +489,17 @@ struct lnf_file_exp_rec {
  * Format is defined as list of records:
  * \verbatim
  *    +---------------------------------------------------------------+
- *    |     Common Block header (type == LNF_FILE_BLOCK_EXT_TABLE)    |
+ *    |    Common Block header (type == LNF_FILE_BLOCK_OFFSET_TBL)    |
  *    +---------------------------------------------------------------+
- *    |                       Extension Record 1                      |
+ *    |                       Block Offset Record 1                   |
  *    +---------------------------------------------------------------+
- *    |                       Extension Record 2                      |
+ *    |                       Block Offset Record 2                   |
  *    +---------------------------------------------------------------+
- *    |                              ...                              |
+ *    |                               ...                             |
  *    +---------------------------------------------------------------+
- *    |                       Extension Record N                      |
+ *    |                       Block Offset Record N                   |
  *    +---------------------------------------------------------------+
- *                      Figure J. Extension table block
+ *                      Figure J. Block offset table
  * \endverbatim
  */
 struct lnf_file_block_ext_pos {
@@ -491,7 +507,7 @@ struct lnf_file_block_ext_pos {
 	struct lnf_file_block_header header;
 
 	/** Records of positions */
-	struct lnf_file_exp_rec rec[1];
+	struct lnf_file_offset_rec rec[1];
 } __attribute__((packed));;
 
 // ----------------------------------------------------------------------------
