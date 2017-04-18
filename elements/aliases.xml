@@ -1,0 +1,54 @@
+<!--  -->
+<aliaes>
+	<element>
+		<!-- Name -->
+		<name>Packets</name>
+		<!-- Aliases for filter expression -->
+		<alias>packets</alias>
+		<alias>pkts</alias>
+		<!-- Element identification -->
+		<id>IANA:packetDeltaCount</id>
+	</element>
+
+	<element>
+		<name>IP</name>
+
+		<alias>ip</alias>
+		<alias>ipaddr</alias>
+
+		<id>IANA:sourceIPv4Address</id>
+		<id>IANA:sourceIPv6Address</id>
+		<id>IANA:destinationIPv4Address</id>
+		<id>IANA:destinationIPv6Address</id>
+	</element>
+
+	<element>
+		<name>Flow Start</name>
+		<alias>flow start</alias>
+
+		<id>IANA:flowStartSeconds</id>
+		<id>IANA:flowStartMilliseconds</id>
+		<id>IANA:flowStartMicroseconds</id>
+		<id>IANA:flowStartNanoseconds</id>
+	</element>
+
+	<element>
+		<name>Flow End</name>
+		<alias>flow end</alias>
+
+		<id>IANA:flowEndSeconds</id>
+		<id>IANA:flowEndMilliseconds</id>
+		<id>IANA:flowEndMicroseconds</id>
+		<id>IANA:flowEndNanoseconds</id>
+	</element>
+
+	<!-- Calculated fields -->
+	<element>
+		<name>Duration</name>
+		<alias>duration</alias>
+		<operation type="-">
+			<arg1>@Flow End</arg1>
+			<arg2>@Flow Start</arg2>
+		</operation>
+	</element>
+</aliaes>
