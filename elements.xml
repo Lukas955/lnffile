@@ -1,0 +1,90 @@
+<!--
+	This is an example configuration file for all IPFIX elements in one
+	Private Enterprise Number (PEN).
+	For each PEN there will be an individual file that allows simple
+	organization and easier maintainability.
+
+	Each element in PEN is identified as: (example for "octetDeltaCount")
+	- <pen_id>:<id_num>     (e.g. "0:1")
+	- <pen_id>:<id_name>    (e.g. "0:octetDeltaCount")
+	- <pen_alias>:<id_num>  (e.g. "IANA:0")
+	- <pen_alias>:<id_name> (e.g. "IANA:octetDeltaCount")
+-->
+
+
+<!-- Private Enterprise Group -->
+<penGroup>
+	<!-- Description of whole PEN (always one per file) -->
+	<description>
+		<!--
+			Private Enterprise Number (PEN)
+			All elements in this file have this PEN, which has been assigned by
+			IANA. See registry:
+			www.iana.org/assignments/enterprise-numbers/enterprise-numbers
+		-->
+		<pen>0</pen>
+		<!-- Organization alias -->
+		<alias>IANA</alias>
+
+		<!-- 
+			Biflow - global configuration of biflow elements
+			Mode:
+			- "pen"
+				All biflow elements are mirrored into another PEN.
+				In this case the parameter is number of the second PEN.
+			- "split"
+				This would reserve Information Element IDs 16384 (0x4000) to
+				32767 (0x7FFF) for the reverse direction of Information Element
+				IDs 0 to 16383 (0x3FFF). No parameter is accepted.
+			- "individual"
+				No global configuration exists. No parameter is accepted.
+		-->
+		<biflow mode="pen">29305</biflow>
+	</description>
+
+	<!-- List of IPFIX elements -->
+	<element>
+		<!-- Element Identification Number -->
+		<id>1</id>
+		<!-- Name (tools.ietf.org/html/rfc7012#section-2.3)       -->
+		<name>octetDeltaCount</name>
+		<!-- Data Type (tools.ietf.org/html/rfc5610#section-3.1)  -->
+		<type>unsigned64</type>
+
+		<!--  
+			Semantics (tools.ietf.org/html/rfc5610#section-3.6)
+			Default: "default"
+		 -->
+		<semantics>deltaCounter</semantics>
+		<!-- 
+			Units (tools.ietf.org/html/rfc5610#section-3.7)
+			Default: "none"
+		-->
+		<units>octets</units>
+
+		<!-- 
+			Status (current/depricated)
+			Default: "current"
+		-->
+		<status>current</status>
+	</element>
+
+	<element>
+		<id>2</id>
+		<name>packetDeltaCount</name>
+		<type>unsigned64</type>
+		<semantics>deltaCounter</semantics>
+		<units>packets</units>
+		<status>current</status>
+	</element>
+
+	<!-- SRC IPv4 (with default values for semantics, units, status) -->
+	<element>
+		<id>8</id>
+		<name>sourceIPv4Address</name>
+		<type>ipv4Address</type>
+	</element>
+
+	<!-- etc.  -->
+
+</penGroup>
